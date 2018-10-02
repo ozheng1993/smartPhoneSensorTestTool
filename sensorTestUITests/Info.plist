@@ -18,5 +18,15 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Our application needs permission to write photos...</string>
+	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
+	<string>tst</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>test</string>
+	<key>NSContactsUsageDescription </key>
+	<string>This app requires contacts access to function properly.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>For Test</string>
 </dict>
 </plist>

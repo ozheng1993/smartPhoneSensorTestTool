@@ -20,7 +20,10 @@ let newSensor = NSManagedObject(entity: entity!, insertInto: context)
 class ViewController: UIViewController ,UITextFieldDelegate{
     let motion = CMMotionManager()
     var timer: Timer!
-    
+    let activityManager = CMMotionActivityManager()
+    let pedoMeter = CMPedometer()
+    @IBOutlet weak var walkDispaly: UILabel!
+    @IBOutlet weak var condifentDisplay: UILabel!
     @IBOutlet weak var infoDispaly: UILabel!
     @IBOutlet weak var freInput: UITextField!
     @IBOutlet weak var exportDisplay: UILabel!
@@ -51,6 +54,7 @@ class ViewController: UIViewController ,UITextFieldDelegate{
         motionManager.startGyroUpdates()
         motionManager.startMagnetometerUpdates()
         motionManager.startDeviceMotionUpdates()
+        
         infoDispaly.text=self.fileName.text!+" / "+freInput.text!+"sec"
         var text: String = freInput.text!
         frequency=Double(text)!
@@ -73,7 +77,7 @@ class ViewController: UIViewController ,UITextFieldDelegate{
             let fileNameString=self.fileName.text
             let fileName = fileNameString!+".csv"
             let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
-            var csvText = "Date,x,y,z\n"
+            var csvText = "Date,x,y,z,mode\n"
             for task in accDatas {
                 let newLine = task
                 csvText.append(newLine)
@@ -125,7 +129,11 @@ class ViewController: UIViewController ,UITextFieldDelegate{
 //        let newSensor = NSManagedObject(entity: entity!, insertInto: context)
        
         
-   
+//        pedometer.isStepCountingAvailable()
+//        pedometer.isDistanceAvailable()
+//        pedometer.isFloorCountingAvailable()
+//        pedometer.isPaceAvailable()
+//        pedometer.isCadenceAvailable()
 
         
     }
@@ -140,6 +148,56 @@ class ViewController: UIViewController ,UITextFieldDelegate{
     }
     
     @objc func update() {
+        
+        
+        
+        
+        
+        
+        var activityMode=0
+        if(CMMotionActivityManager.isActivityAvailable())
+        {
+            //print("available")
+                activityManager.startActivityUpdates(to: OperationQueue.main) {
+                    [weak self] (activity: CMMotionActivity?) in
+                    
+//                    self?.walkDispaly.text = String(activity!.stationary)
+//                    guard let activity = activity else { return }
+//                    DispatchQueue.main.async {
+//                      var deatil: String =
+//
+//                    if activity!.walking  {
+////                        self!.condifentDisplay.text=deatil
+//                        self?.walkDispaly.text = "Walking"
+//                         activityMode="Walking"
+//
+//                    } else if activity!.stationary {
+//                            self?.walkDispaly.text = "Stationary"
+//                       activityMode="Stationary"
+//                    } else if activity!.running {
+//                            self?.walkDispaly.text = "Running"
+//                          activityMode="Running"
+//                    } else if activity!.automotive {
+//                            self?.walkDispaly.text = "Automotive"
+//                        activityMode="Automotive"
+//                        }
+//                    else if activity!.cycling {
+//                        self?.walkDispaly.text = "Cycling"
+//                        activityMode="Cycling"
+//                    }
+//                    }
+
+//                     self?.walkDispaly.text = String(print(activity))
+                }
+            
+            }
+        
+        
+        
+        
+        
+        
+        
         if let accelerometerData = motionManager.accelerometerData {
 
             let dateFormatter : DateFormatter = DateFormatter()
@@ -151,10 +209,36 @@ class ViewController: UIViewController ,UITextFieldDelegate{
             displayDataX.text="x: "+String(accelerometerData.acceleration.x)
             displayDataY.text="y: "+String(accelerometerData.acceleration.y)
             displayDataZ.text="z: "+String(accelerometerData.acceleration.z)
+            activityManager.startActivityUpdates(to: OperationQueue.main) {
+                [weak self] (activity: CMMotionActivity?) in
+            if activity!.walking  {
+                //                        self!.condifentDisplay.text=deatil
+                self?.walkDispaly.text = "Walking"
+                activityMode=1
+                
+                
+            } else if activity!.stationary {
+                self?.walkDispaly.text = "Stationary"
+                activityMode=2
+            } else if activity!.running {
+                self?.walkDispaly.text = "Running"
+                activityMode=3
+            } else if activity!.automotive {
+                self?.walkDispaly.text = "Automotive"
+                activityMode=4
+            }
+            else if activity!.cycling {
+                self?.walkDispaly.text = "Cycling"
+                activityMode=5
+            }
+                else
+            {
+                self?.walkDispaly.text = "undifine"
+                activityMode=6
+                }
+            }
             
-            
-            
-            let accData=String(dateString)+","+String(accelerometerData.acceleration.x)+","+String(accelerometerData.acceleration.y)+","+String(accelerometerData.acceleration.z)+"\n"
+            let accData=String(dateString)+","+String(accelerometerData.acceleration.x)+","+String(accelerometerData.acceleration.y)+","+String(accelerometerData.acceleration.z)+","+String(activityMode)+"\n"
             //print(accData)
             
             
@@ -207,6 +291,9 @@ class ViewController: UIViewController ,UITextFieldDelegate{
     
             
         }
+//                if let pedData = motionManager.gyroData {
+//                    print(gyroData)
+//                }
         //        if let gyroData = motionManager.gyroData {
         //            print(gyroData)
         //        }
