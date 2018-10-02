@@ -11,6 +11,7 @@ import CoreMotion
 import CoreData
 var accDatas: [String] = []
 var startToSave = false
+var frequency=1.0
 let motionManager = CMMotionManager()
 let appDelegate = UIApplication.shared.delegate as! AppDelegate
 let context = appDelegate.persistentContainer.viewContext
@@ -35,11 +36,33 @@ class ViewController: UIViewController ,UITextFieldDelegate{
         
         
     }
-  
+    @IBAction func stopReocrd(_ sender: Any) {
+        infoDispaly.text="stop access acc data"
+        timer.invalidate()
+        timer = nil//      freInput.text=String(1000.0)
+//        var text: String = freInput.text!
+//        frequency=Double(text)!
+//        timer = Timer.scheduledTimer(timeInterval: frequency, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
+        motionManager.stopAccelerometerUpdates()
+    }
+    
+    @IBAction func updateFreButton(_ sender: Any) {
+        motionManager.startAccelerometerUpdates()
+        motionManager.startGyroUpdates()
+        motionManager.startMagnetometerUpdates()
+        motionManager.startDeviceMotionUpdates()
+        infoDispaly.text=self.fileName.text!+" / "+freInput.text!+"sec"
+        var text: String = freInput.text!
+        frequency=Double(text)!
+        print(frequency)
+        timer = Timer.scheduledTimer(timeInterval: frequency, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
+    }
     
     @IBAction func saveDataButton(_ sender: Any) {
          startToSave = true
             saveDisplay.text=String(startToSave)
+  
+
        
     }
     
@@ -100,14 +123,9 @@ class ViewController: UIViewController ,UITextFieldDelegate{
 //        let context = appDelegate.persistentContainer.viewContext
 //        let entity = NSEntityDescription.entity(forEntityName: "Sensor", in: context)
 //        let newSensor = NSManagedObject(entity: entity!, insertInto: context)
-        motionManager.startAccelerometerUpdates()
-        motionManager.startGyroUpdates()
-        motionManager.startMagnetometerUpdates()
-        motionManager.startDeviceMotionUpdates()
-       let attributedString  =  NSAttributedString(data: freInput.text,options: attributedOptions, documentAttributes: nil)
-        let tempFre=Float(attributedString)
-        timer = Timer.scheduledTimer(timeInterval: tempFre, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
-
+       
+        
+   
 
         
     }
@@ -129,10 +147,10 @@ class ViewController: UIViewController ,UITextFieldDelegate{
             let date = Date()
             let dateString = dateFormatter.string(from: date)
 //            let interval = date.timeIntervalSince1970
-            infoDispaly.text=self.fileName.text!+" / "+freInput.text!+"sec"
-            displayDataX.text=String(accelerometerData.acceleration.x)
-            displayDataY.text=String(accelerometerData.acceleration.y)
-            displayDataZ.text=String(accelerometerData.acceleration.z)
+            
+            displayDataX.text="x: "+String(accelerometerData.acceleration.x)
+            displayDataY.text="y: "+String(accelerometerData.acceleration.y)
+            displayDataZ.text="z: "+String(accelerometerData.acceleration.z)
             
             
             
@@ -143,7 +161,7 @@ class ViewController: UIViewController ,UITextFieldDelegate{
             if startToSave
             {
                 accDatas.append(accData)
-                countDisplay.text=String(accDatas.count);
+                countDisplay.text="saved : "+String(accDatas.count);
                 let defaults = UserDefaults.standard
                 
                 // Store
