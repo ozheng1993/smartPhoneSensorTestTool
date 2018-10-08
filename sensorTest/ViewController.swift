@@ -13,6 +13,7 @@ import CoreLocation
 var accDatas: [String] = []
 var startToSave = false
 var frequency=1.0
+var finalData=""
 let motionManager = CMMotionManager()
 let appDelegate = UIApplication.shared.delegate as! AppDelegate
 let context = appDelegate.persistentContainer.viewContext
@@ -76,6 +77,8 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
         var text: String = freInput.text!
         frequency=Double(text)!
         print(frequency)
+        manager.startUpdatingLocation()
+        print(manager.location)
         timer = Timer.scheduledTimer(timeInterval: frequency, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
     }
     
@@ -94,7 +97,7 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
             let fileNameString=self.fileName.text
             let fileName = fileNameString!+".csv"
             let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
-            var csvText = "Date,x,y,z,mode\n"
+            var csvText = "Date,accx,accy,accz,gyrox,gryoy,gyroz,magnetx,magnety,magnetz,lon,lan,speed,course,error,mode\n"
             for task in accDatas {
                 let newLine = task
                 csvText.append(newLine)
@@ -143,37 +146,34 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestAlwaysAuthorization()
-
-        
     }
     
     
-    
-    func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-        switch status {
-        case .restricted,.denied,.notDetermined:
-            // report error, do something
-            print("error")
-        default:
-            // location si allowed, start monitoring
-            manager.startUpdatingLocation()
-        }
-    }
-    
-    func locationManager(manager: CLLocationManager, didFailWithError error: NSError) {
-        manager.stopUpdatingLocation()
-        // do something with the error
-    }
-    
-    func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let locationObj = locations.last {
-//            if locationObj.horizontalAccuracy < minAllowedAccuracy {
-//                manager.stopUpdatingLocation()
-//                // report location somewhere else
-//            }
-        }
-    }
-    
+//    func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
+//        switch status {
+//        case .restricted,.denied,.notDetermined:
+//            // report error, do something
+//            print("error")
+//        default:
+//            // location si allowed, start monitoring
+//            manager.startUpdatingLocation()
+//        }
+//    }
+//
+//    func locationManager(manager: CLLocationManager, didFailWithError error: NSError) {
+//        manager.stopUpdatingLocation()
+//        // do something with the error
+//    }
+//
+//    func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+//        if let locationObj = locations.last {
+////            if locationObj.horizontalAccuracy < minAllowedAccuracy {
+////                manager.stopUpdatingLocation()
+////                // report location somewhere else
+////            }
+//        }
+//    }
+//
     
     
     
@@ -259,10 +259,11 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
             displayGpsDataLon.text="lon: "+String(gpsRawDataLon!)
             displayGpsDataLan.text="lan: "+String(gpsRawDataLan!)
             displayGpsDataSpeed.text="speed: "+String(gpsRawDataSpeed!)
-            displayGpsDataHeading.text="speed: "+String(gpsRawDataCourse!)
-            displayGpsDataError.text="speed: "+String(gpsRawDataError!)
+            displayGpsDataHeading.text="course: "+String(gpsRawDataCourse!)
+            displayGpsDataError.text="error: "+String(gpsRawDataError!)
         
         
+           let Data=String(dateString)+","+String(accRawDataX)+","+String(accRawDataY)+","+String(accRawDataZ)+","+String(gyroRawDataX)+","+String(gyroRawDataY)+","+String(gyroRawDataZ)+","+String(magnetRawDataX)+","+String(magnetRawDataY)+","+String(magnetRawDataZ)+","+String(gpsRawDataLon!)+","+String(gpsRawDataLan!)+","+String(gpsRawDataSpeed!)+","+String(gpsRawDataCourse!)+","+String(gpsRawDataError!)
         
         
             activityManager.startActivityUpdates(to: OperationQueue.main) {
@@ -271,42 +272,54 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
                 //                        self!.condifentDisplay.text=deatil
                 self?.walkDispaly.text = "Walking"
                 activityMode=1
+                finalData=Data+",walking"+"\n"
                 
                 
             } else if activity!.stationary {
                 self?.walkDispaly.text = "Stationary"
                 activityMode=2
+                finalData=Data+",strationary"+"\n"
             } else if activity!.running {
                 self?.walkDispaly.text = "Running"
                 activityMode=3
+                finalData=Data+",running"+"\n"
             } else if activity!.automotive {
                 self?.walkDispaly.text = "Automotive"
                 activityMode=4
+                finalData=Data+",automotive"+"\n"
             }
             else if activity!.cycling {
                 self?.walkDispaly.text = "Cycling"
                 activityMode=5
+                finalData=Data+",cycling"+"\n"
             }
                 else
             {
                 self?.walkDispaly.text = "undifine"
                 activityMode=6
+                finalData=Data+",undifine"+"\n"
                 }
             }
-            
-            let accData=String(dateString)+","+String(accRawDataX)+","+String(accRawDataY)+","+String(accRawDataZ)+","+String(activityMode)+"\n"
-            //print(accData)
+     
+//            let accData=String(dateString)+","+String(accRawDataX)+","+String(accRawDataY)+","+String(accRawDataZ)+","+String(activityMode)
+//
+//            let accGyroData=accData+","+String(gyroRawDataX)+","+String(gyroRawDataY)+","+String(gyroRawDataZ)
+//
+//            let accGyroMagnetData=accGyroData+","+String(magnetRawDataX)+","+String(magnetRawDataY)+","+String(magnetRawDataZ)
+//            let accGyroMagnetGpsData=accGyroMagnetData+","+String(gpsRawDataLon)+","+String(gpsRawDataLan)+","+String(gpsRawDataSpeed+","+String(gpsRawDataCourse)+","+String(gpsRawDataError)+"\n"
+//
+           // print(finalData)
             
             
             if startToSave
             {
-                accDatas.append(accData)
+                accDatas.append(finalData)
                 countDisplay.text="saved : "+String(accDatas.count);
                 let defaults = UserDefaults.standard
-                
+
                 // Store
-                defaults.set(accData, forKey: "username")
-                
+                defaults.set(Data, forKey: "username")
+
                 // Receive
                 if let name = defaults.string(forKey: "username") {
                     print(name)
@@ -316,23 +329,23 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
                     UIApplication.shared.delegate as? AppDelegate else {
                         return
                 }
-                
+
                 // 1
                 let managedContext =
                     appDelegate.persistentContainer.viewContext
-                
+
                 // 2
                 let entity =
                     NSEntityDescription.entity(forEntityName: "Sensor",
                                                in: managedContext)!
-                
+
                 let sensor = NSManagedObject(entity: entity,
                                              insertInto: managedContext)
-                
+
                 // 3
-                sensor.setValue(accData, forKeyPath: "data")
-                
-                // 4
+                sensor.setValue(Data, forKeyPath: "data")
+
+                 //4
                 do {
                     try managedContext.save()
                     //                people.append(person)
