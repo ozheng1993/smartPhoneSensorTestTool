@@ -55,5 +55,9 @@
 	</array>
 	<key>NSMotionUsageDescription</key>
 	<string>for step count</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>fpr gpsd</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>for gps</string>
 </dict>
 </plist>

@@ -9,6 +9,7 @@
 import UIKit
 import CoreMotion
 import CoreData
+import CoreLocation
 var accDatas: [String] = []
 var startToSave = false
 var frequency=1.0
@@ -17,7 +18,8 @@ let appDelegate = UIApplication.shared.delegate as! AppDelegate
 let context = appDelegate.persistentContainer.viewContext
 let entity = NSEntityDescription.entity(forEntityName: "Sensor", in: context)
 let newSensor = NSManagedObject(entity: entity!, insertInto: context)
-class ViewController: UIViewController ,UITextFieldDelegate{
+var manager:CLLocationManager = CLLocationManager()
+class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDelegate{
     let motion = CMMotionManager()
     var timer: Timer!
     let activityManager = CMMotionActivityManager()
@@ -34,6 +36,24 @@ class ViewController: UIViewController ,UITextFieldDelegate{
     @IBOutlet weak var displayDataZ: UILabel!
     @IBOutlet weak var fileName: UITextField!
     @IBOutlet weak var diaplyFileName: UILabel!
+    
+    
+    @IBOutlet weak var displayGyroDataX: UILabel!
+    @IBOutlet weak var displayGyroDataY: UILabel!
+    @IBOutlet weak var displayGyroDataZ: UILabel!
+    
+    @IBOutlet weak var displayMagnetDataX: UILabel!
+    @IBOutlet weak var displayMagnetDataY: UILabel!
+    @IBOutlet weak var displayMagnetDataZ: UILabel!
+    
+    
+    @IBOutlet weak var displayGpsDataLon: UILabel!
+    @IBOutlet weak var displayGpsDataLan: UILabel!
+    @IBOutlet weak var displayGpsDataSpeed: UILabel!
+    @IBOutlet weak var displayGpsDataHeading: UILabel!
+    @IBOutlet weak var displayGpsDataError: UILabel!
+    
+    
     @IBAction func getFileName(_ sender: Any) {
         diaplyFileName.text=fileName.text
         
@@ -43,9 +63,6 @@ class ViewController: UIViewController ,UITextFieldDelegate{
         infoDispaly.text="stop access acc data"
         timer.invalidate()
         timer = nil//      freInput.text=String(1000.0)
-//        var text: String = freInput.text!
-//        frequency=Double(text)!
-//        timer = Timer.scheduledTimer(timeInterval: frequency, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
         motionManager.stopAccelerometerUpdates()
     }
     
@@ -123,20 +140,42 @@ class ViewController: UIViewController ,UITextFieldDelegate{
         let tap = UITapGestureRecognizer(target: self.view, action: #selector(UIView.endEditing(_:)))
         tap.cancelsTouchesInView = false
         self.view.addGestureRecognizer(tap)
-//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-//        let context = appDelegate.persistentContainer.viewContext
-//        let entity = NSEntityDescription.entity(forEntityName: "Sensor", in: context)
-//        let newSensor = NSManagedObject(entity: entity!, insertInto: context)
-       
-        
-//        pedometer.isStepCountingAvailable()
-//        pedometer.isDistanceAvailable()
-//        pedometer.isFloorCountingAvailable()
-//        pedometer.isPaceAvailable()
-//        pedometer.isCadenceAvailable()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.requestAlwaysAuthorization()
 
         
     }
+    
+    
+    
+    func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
+        switch status {
+        case .restricted,.denied,.notDetermined:
+            // report error, do something
+            print("error")
+        default:
+            // location si allowed, start monitoring
+            manager.startUpdatingLocation()
+        }
+    }
+    
+    func locationManager(manager: CLLocationManager, didFailWithError error: NSError) {
+        manager.stopUpdatingLocation()
+        // do something with the error
+    }
+    
+    func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let locationObj = locations.last {
+//            if locationObj.horizontalAccuracy < minAllowedAccuracy {
+//                manager.stopUpdatingLocation()
+//                // report location somewhere else
+//            }
+        }
+    }
+    
+    
+    
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         
@@ -149,66 +188,83 @@ class ViewController: UIViewController ,UITextFieldDelegate{
     
     @objc func update() {
         
-        
-        
-        
-        
-        
         var activityMode=0
         if(CMMotionActivityManager.isActivityAvailable())
         {
             //print("available")
                 activityManager.startActivityUpdates(to: OperationQueue.main) {
                     [weak self] (activity: CMMotionActivity?) in
-                    
-//                    self?.walkDispaly.text = String(activity!.stationary)
-//                    guard let activity = activity else { return }
-//                    DispatchQueue.main.async {
-//                      var deatil: String =
-//
-//                    if activity!.walking  {
-////                        self!.condifentDisplay.text=deatil
-//                        self?.walkDispaly.text = "Walking"
-//                         activityMode="Walking"
-//
-//                    } else if activity!.stationary {
-//                            self?.walkDispaly.text = "Stationary"
-//                       activityMode="Stationary"
-//                    } else if activity!.running {
-//                            self?.walkDispaly.text = "Running"
-//                          activityMode="Running"
-//                    } else if activity!.automotive {
-//                            self?.walkDispaly.text = "Automotive"
-//                        activityMode="Automotive"
-//                        }
-//                    else if activity!.cycling {
-//                        self?.walkDispaly.text = "Cycling"
-//                        activityMode="Cycling"
-//                    }
-//                    }
-
-//                     self?.walkDispaly.text = String(print(activity))
+ 
                 }
             
             }
         
-        
-        
-        
-        
-        
-        
-        if let accelerometerData = motionManager.accelerometerData {
+        //acc dat
+        let accRawDataX = motionManager.accelerometerData!.acceleration.x
+        let accRawDataY = motionManager.accelerometerData!.acceleration.y
+        let accRawDataZ = motionManager.accelerometerData!.acceleration.z
+        //gyro
+        let gyroRawDataX = motionManager.gyroData!.rotationRate.x
+        let gyroRawDataY = motionManager.gyroData!.rotationRate.y
+        let gyroRawDataZ = motionManager.gyroData!.rotationRate.z
+        //magnet
+        let magnetRawDataX = motionManager.magnetometerData!.magneticField.x
+        let magnetRawDataY = motionManager.magnetometerData!.magneticField.y
+        let magnetRawDataZ = motionManager.magnetometerData!.magneticField.z
+        //time
+        let dateFormatter : DateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let date = Date()
+        let dateString = dateFormatter.string(from: date)
 
-            let dateFormatter : DateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-            let date = Date()
-            let dateString = dateFormatter.string(from: date)
-//            let interval = date.timeIntervalSince1970
-            
-            displayDataX.text="x: "+String(accelerometerData.acceleration.x)
-            displayDataY.text="y: "+String(accelerometerData.acceleration.y)
-            displayDataZ.text="z: "+String(accelerometerData.acceleration.z)
+        let gpsRawDataLon = manager.location?.coordinate.longitude
+        let gpsRawDataLan = manager.location?.coordinate.latitude
+        let gpsRawDataCourse = manager.location?.course
+        let gpsRawDataError = manager.location?.horizontalAccuracy
+        let gpsRawDataSpeed = manager.location?.speed.description
+//
+//        func startReceivingLocationChanges() {
+//            let authorizationStatus = CLLocationManager.authorizationStatus()
+//            if authorizationStatus != .authorizedWhenInUse && authorizationStatus != .authorizedAlways {
+//                // User has not authorized access to location information.
+//                return
+//            }
+//            // Do not start services that aren't available.
+//            if !CLLocationManager.locationServicesEnabled() {
+//                // Location services is not available.
+//                return
+//            }
+//            // Configure and start the service.
+//            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+//            locationManager.distanceFilter = 100.0  // In meters.
+//            locationManager.delegate = self as! CLLocationManagerDelegate
+//            locationManager.startUpdatingLocation()
+//
+//            print(locationManager.delegate)
+//        }
+        
+            displayDataX.text="x: "+String(accRawDataX)
+            displayDataY.text="y: "+String(accRawDataY)
+            displayDataZ.text="z: "+String(accRawDataZ)
+        
+            displayGyroDataX.text="x: "+String(gyroRawDataX)
+            displayGyroDataY.text="y: "+String(gyroRawDataY)
+            displayGyroDataZ.text="z: "+String(gyroRawDataZ)
+     
+            displayMagnetDataX.text="x: "+String(magnetRawDataX)
+            displayMagnetDataY.text="y: "+String(magnetRawDataY)
+            displayMagnetDataZ.text="z: "+String(magnetRawDataZ)
+        
+      
+            displayGpsDataLon.text="lon: "+String(gpsRawDataLon!)
+            displayGpsDataLan.text="lan: "+String(gpsRawDataLan!)
+            displayGpsDataSpeed.text="speed: "+String(gpsRawDataSpeed!)
+            displayGpsDataHeading.text="speed: "+String(gpsRawDataCourse!)
+            displayGpsDataError.text="speed: "+String(gpsRawDataError!)
+        
+        
+        
+        
             activityManager.startActivityUpdates(to: OperationQueue.main) {
                 [weak self] (activity: CMMotionActivity?) in
             if activity!.walking  {
@@ -238,7 +294,7 @@ class ViewController: UIViewController ,UITextFieldDelegate{
                 }
             }
             
-            let accData=String(dateString)+","+String(accelerometerData.acceleration.x)+","+String(accelerometerData.acceleration.y)+","+String(accelerometerData.acceleration.z)+","+String(activityMode)+"\n"
+            let accData=String(dateString)+","+String(accRawDataX)+","+String(accRawDataY)+","+String(accRawDataZ)+","+String(activityMode)+"\n"
             //print(accData)
             
             
@@ -291,21 +347,6 @@ class ViewController: UIViewController ,UITextFieldDelegate{
     
             
         }
-//                if let pedData = motionManager.gyroData {
-//                    print(gyroData)
-//                }
-        //        if let gyroData = motionManager.gyroData {
-        //            print(gyroData)
-        //        }
-        //        if let magnetometerData = motionManager.magnetometerData {
-        //            print(magnetometerData)
-        //        }
-        //        if let deviceMotion = motionManager.deviceMotion {
-        //            print(deviceMotion)
-        //        }
-    }
-    
-    
 
 
    
