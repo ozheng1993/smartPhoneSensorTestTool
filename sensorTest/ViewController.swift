@@ -22,6 +22,7 @@ let newSensor = NSManagedObject(entity: entity!, insertInto: context)
 var manager:CLLocationManager = CLLocationManager()
 class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDelegate{
     let motion = CMMotionManager()
+    let altimeter = CMAltimeter()
     var timer: Timer!
     let activityManager = CMMotionActivityManager()
     let pedoMeter = CMPedometer()
@@ -55,25 +56,54 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
     @IBOutlet weak var displayGpsDataError: UILabel!
     
     
-    @IBAction func getFileName(_ sender: Any) {
-        diaplyFileName.text=fileName.text
-        
-        
-    }
+    
+    @IBOutlet weak var displayUserStatus: UILabel!
+    
+    @IBOutlet weak var displayAccStatus: UILabel!
+    
+    @IBOutlet weak var displayGyroStatus: UILabel!
+    
+    @IBOutlet weak var displayMagnetStatus: UILabel!
+    
+    @IBOutlet weak var displayGpsStatus: UILabel!
+    
+    @IBOutlet weak var displayBaroStatus: UILabel!
+    
+    
+    
+    
+    
+    @IBOutlet weak var displayAirpressure: UILabel!
+    
+    
+    
+    
+    @IBOutlet weak var displayAltitude: UILabel!
+    
+    
+    
+    
+//    @IBAction func getFileName(_ sender: Any) {
+//        diaplyFileName.text=fileName.text
+//
+//
+//    }
     @IBAction func stopReocrd(_ sender: Any) {
-        infoDispaly.text="stop access acc data"
+        //infoDispaly.text="stop access acc data"
         timer.invalidate()
         timer = nil//      freInput.text=String(1000.0)
         motionManager.stopAccelerometerUpdates()
     }
     
     @IBAction func updateFreButton(_ sender: Any) {
+        
+        
         motionManager.startAccelerometerUpdates()
         motionManager.startGyroUpdates()
         motionManager.startMagnetometerUpdates()
         motionManager.startDeviceMotionUpdates()
-        
-        infoDispaly.text=self.fileName.text!+" / "+freInput.text!+"sec"
+      
+        //infoDispaly.text=self.fileName.text!+" / "+freInput.text!+"sec"
         var text: String = freInput.text!
         frequency=Double(text)!
         print(frequency)
@@ -84,10 +114,8 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
     
     @IBAction func saveDataButton(_ sender: Any) {
          startToSave = true
-            saveDisplay.text=String(startToSave)
-  
-
-       
+        saveDisplay.text="saving..."
+ 
     }
     
     @IBAction func exportButton(_ sender: Any) {
@@ -97,14 +125,14 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
             let fileNameString=self.fileName.text
             let fileName = fileNameString!+".csv"
             let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
-            var csvText = "Date,accx,accy,accz,gyrox,gryoy,gyroz,magnetx,magnety,magnetz,lon,lan,speed,course,error,mode\n"
+            var csvText = "Date,accx,accy,accz,gyrox,gryoy,gyroz,magnetx,magnety,magnetz,lon,lan,speed,course,error,air pressure,altitude,mode\n"
             for task in accDatas {
                 let newLine = task
                 csvText.append(newLine)
             }
             do {
                 try csvText.write(to: path!, atomically: true, encoding: String.Encoding.utf8)
-                self.exportDisplay.text="export to : "+fileName
+                //self.exportDisplay.text="exported to : "+fileName
                 let vc = UIActivityViewController(activityItems: [path], applicationActivities: [])
                 vc.excludedActivityTypes = [
                     UIActivity.ActivityType.assignToContact,
@@ -136,7 +164,7 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
     }
     @IBAction func stopButton(_ sender: Any) {
         startToSave = false
-        saveDisplay.text=String(startToSave)
+        saveDisplay.text="stop saving"
     }
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -147,36 +175,7 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestAlwaysAuthorization()
     }
-    
-    
-//    func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-//        switch status {
-//        case .restricted,.denied,.notDetermined:
-//            // report error, do something
-//            print("error")
-//        default:
-//            // location si allowed, start monitoring
-//            manager.startUpdatingLocation()
-//        }
-//    }
-//
-//    func locationManager(manager: CLLocationManager, didFailWithError error: NSError) {
-//        manager.stopUpdatingLocation()
-//        // do something with the error
-//    }
-//
-//    func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-//        if let locationObj = locations.last {
-////            if locationObj.horizontalAccuracy < minAllowedAccuracy {
-////                manager.stopUpdatingLocation()
-////                // report location somewhere else
-////            }
-//        }
-//    }
-//
-    
-    
-    
+
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         
         textField.resignFirstResponder()
@@ -186,18 +185,118 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
         
     }
     
+    
+//    func getAirPressure(pressure: Double, alt: Double) -> Double {
+//
+//
+//        if CMAltimeter.isRelativeAltitudeAvailable() {
+//            altimeter.startRelativeAltitudeUpdates(to: OperationQueue.main, withHandler: { data, error in
+//                if (error == nil) {
+//
+//                    pressure+=Double(data!.pressure)
+//                    return pressure
+//                }
+//            })
+//
+//
+//
+//        return
+//    }
+//
+    
+    
+    
+//
+//    func getAirPressure()-> Double{
+//
+////        var airpressure=0.0
+////        var altitude=0.0
+//        if CMAltimeter.isRelativeAltitudeAvailable() {
+//            altimeter.startRelativeAltitudeUpdates(to: OperationQueue.main, withHandler: { data, error in
+//                if (error == nil) {
+////                    //                    var pressure=data?.pressure
+////                    //                    var altitude=data?.relativeAltitude
+////                    self.displayAirpressure.text="ais pressure: \(data!.pressure)"
+//////                    self.displayAltitude.text="altitude: \(data!.relativeAltitude)"
+////                    airpressure=Double(data!.pressure)
+//
+//
+//                    return data!.pressure
+//                }
+//            })
+////            //
+////            //            print("dat2"+String(\(airPressureRawData)))
+////            //            print("dat2"+String(\(altitudeRawData)))
+////            displayBaroStatus.text="Avaiable"
+////            displayBaroStatus.textColor = UIColor.green
+////            print("true")
+////        }
+//
+//    }
+    
     @objc func update() {
         
-        var activityMode=0
+        
+        
+         let airPressure = motionManager.accelerometerData!.acceleration.x
+        
+        
+        
+//
+//        let airPressure = CMAltitudeData
+//        print(airPressure)
+//
+//        var airPressureRawData:Double!
+//        var altitudeRawData:Double!
+        
+        if CMAltimeter.isRelativeAltitudeAvailable() {
+            altimeter.startRelativeAltitudeUpdates(to: OperationQueue.main, withHandler: { data, error in
+                if (error == nil) {
+//                   airPressureRawData=0.0
+//                    altitudeRawData=0.0
+                    self.displayAirpressure.text="\(data!.pressure)"
+                    self.displayAltitude.text="\(data!.relativeAltitude)"
+//                    airPressureRawData=Double("\(data!.pressure)")!
+//                    altitudeRawData=Double("\(data!.relativeAltitude)")!
+//                    print("dat"+String(airPressureRawData!))
+//                    print("dat"+String(altitudeRawData!))
+
+                }
+            })
+
+            displayBaroStatus.text="Avaiable"
+            displayBaroStatus.textColor = UIColor.green
+            print("true")
+        }
+        else
+        {
+            displayBaroStatus.text="UnAvaiable"
+            displayBaroStatus.textColor = UIColor.red
+             print("false")
+        }
+        let airPressureRawData: String = self.displayAirpressure.text!
+        let altitudeRawData: String = self.displayAltitude.text!
+//        let test=airPressureRawData!
+//         let test2=altitudeRawData!
+        print(airPressureRawData)
+        print(altitudeRawData)
         if(CMMotionActivityManager.isActivityAvailable())
         {
             //print("available")
+            displayUserStatus.text="Avaliable"
+            displayUserStatus.textColor = UIColor.green
                 activityManager.startActivityUpdates(to: OperationQueue.main) {
                     [weak self] (activity: CMMotionActivity?) in
  
                 }
             
             }
+        else
+        {
+            displayUserStatus.text="Unavaliable"
+            displayUserStatus.textColor = UIColor.red
+            
+        }
         
         //acc dat
         let accRawDataX = motionManager.accelerometerData!.acceleration.x
@@ -222,82 +321,158 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
         let gpsRawDataCourse = manager.location?.course
         let gpsRawDataError = manager.location?.horizontalAccuracy
         let gpsRawDataSpeed = manager.location?.speed.description
+
+//        var airPressureRawData=self.displayAirpressure.text
+//        var altitudeRawData=self.displayAltitude.text
+        print(airPressureRawData)
+        print(altitudeRawData)
 //
-//        func startReceivingLocationChanges() {
-//            let authorizationStatus = CLLocationManager.authorizationStatus()
-//            if authorizationStatus != .authorizedWhenInUse && authorizationStatus != .authorizedAlways {
-//                // User has not authorized access to location information.
-//                return
-//            }
-//            // Do not start services that aren't available.
-//            if !CLLocationManager.locationServicesEnabled() {
-//                // Location services is not available.
-//                return
-//            }
-//            // Configure and start the service.
-//            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-//            locationManager.distanceFilter = 100.0  // In meters.
-//            locationManager.delegate = self as! CLLocationManagerDelegate
-//            locationManager.startUpdatingLocation()
-//
-//            print(locationManager.delegate)
-//        }
-        
-            displayDataX.text="x: "+String(accRawDataX)
-            displayDataY.text="y: "+String(accRawDataY)
-            displayDataZ.text="z: "+String(accRawDataZ)
-        
-            displayGyroDataX.text="x: "+String(gyroRawDataX)
-            displayGyroDataY.text="y: "+String(gyroRawDataY)
-            displayGyroDataZ.text="z: "+String(gyroRawDataZ)
-     
-            displayMagnetDataX.text="x: "+String(magnetRawDataX)
-            displayMagnetDataY.text="y: "+String(magnetRawDataY)
-            displayMagnetDataZ.text="z: "+String(magnetRawDataZ)
-        
-      
+        if (manager.location != nil)
+        {
+            displayGpsStatus.text="Avaliable"
+            displayGpsStatus.textColor = UIColor.green
             displayGpsDataLon.text="lon: "+String(gpsRawDataLon!)
-            displayGpsDataLan.text="lan: "+String(gpsRawDataLan!)
+            displayGpsDataLan.text="lat: "+String(gpsRawDataLan!)
             displayGpsDataSpeed.text="speed: "+String(gpsRawDataSpeed!)
             displayGpsDataHeading.text="course: "+String(gpsRawDataCourse!)
             displayGpsDataError.text="error: "+String(gpsRawDataError!)
+        }
+        else
+        {
+            displayGpsStatus.text="Unvaliable"
+            displayGpsStatus.textColor = UIColor.red
+            displayGpsDataLon.text="lon: nil"
+            displayGpsDataLan.text="lat: nil"
+            displayGpsDataSpeed.text="speed: nil"
+            displayGpsDataHeading.text="course: nil"
+            displayGpsDataError.text="error: nil"
+        }
+
         
         
-           let Data=String(dateString)+","+String(accRawDataX)+","+String(accRawDataY)+","+String(accRawDataZ)+","+String(gyroRawDataX)+","+String(gyroRawDataY)+","+String(gyroRawDataZ)+","+String(magnetRawDataX)+","+String(magnetRawDataY)+","+String(magnetRawDataZ)+","+String(gpsRawDataLon!)+","+String(gpsRawDataLan!)+","+String(gpsRawDataSpeed!)+","+String(gpsRawDataCourse!)+","+String(gpsRawDataError!)
         
+        
+        if motionManager.isAccelerometerActive
+        {
+            displayAccStatus.text="Avaliable"
+            displayAccStatus.textColor = UIColor.green
+            displayDataX.text="x: "+String(accRawDataX)
+            displayDataY.text="y: "+String(accRawDataY)
+            displayDataZ.text="z: "+String(accRawDataZ)
+        }
+        else
+        {
+            displayAccStatus.text="Unvaliable"
+            displayAccStatus.textColor = UIColor.red
+            displayDataX.text="x: nil "
+            displayDataY.text="y: nil "
+            displayDataZ.text="z: nil "
+        }
+        
+        if motionManager.isGyroActive
+        {
+            displayGyroStatus.text="Avaliable"
+            displayGyroStatus.textColor = UIColor.green
+            displayGyroDataX.text="x: "+String(gyroRawDataX)
+            displayGyroDataY.text="y: "+String(gyroRawDataY)
+            displayGyroDataZ.text="z: "+String(gyroRawDataZ)
+        }
+        else
+        {
+            displayGyroStatus.text="Unvaliable"
+            displayGyroStatus.textColor = UIColor.red
+            displayGyroDataX.text="x: nil "
+            displayGyroDataY.text="y: nil"
+            displayGyroDataZ.text="z: nil"
+        }
+        
+        if motionManager.isMagnetometerActive
+        {
+            displayMagnetStatus.text="Avaliable"
+            displayMagnetStatus.textColor = UIColor.green
+            displayMagnetDataX.text="x: "+String(magnetRawDataX)
+            displayMagnetDataY.text="y: "+String(magnetRawDataY)
+            displayMagnetDataZ.text="z: "+String(magnetRawDataZ)
+        }
+        else
+        {
+            displayMagnetStatus.text="Unvaliable"
+            displayMagnetStatus.textColor = UIColor.red
+            displayMagnetDataX.text="x: nil "
+            displayMagnetDataY.text="y: nil"
+            displayMagnetDataZ.text="z: nil"
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+//
+//            displayDataX.text="x: "+String(accRawDataX)
+//            displayDataY.text="y: "+String(accRawDataY)
+//            displayDataZ.text="z: "+String(accRawDataZ)
+        
+        
+        
+        
+        
+        
+        
+//            displayGyroDataX.text="x: "+String(gyroRawDataX)
+//            displayGyroDataY.text="y: "+String(gyroRawDataY)
+//            displayGyroDataZ.text="z: "+String(gyroRawDataZ)
+     
+//            displayMagnetDataX.text="x: "+String(magnetRawDataX)
+//            displayMagnetDataY.text="y: "+String(magnetRawDataY)
+//            displayMagnetDataZ.text="z: "+String(magnetRawDataZ)
+//
+        //gps
+            displayGpsDataLon.text="lon: "+String(gpsRawDataLon!)
+            displayGpsDataLan.text="lat: "+String(gpsRawDataLan!)
+            displayGpsDataSpeed.text="speed: "+String(gpsRawDataSpeed!)
+            displayGpsDataHeading.text="course: "+String(gpsRawDataCourse!)
+            displayGpsDataError.text="error: "+String(gpsRawDataError!)
+
+
+        
+           let Data=String(dateString)+","+String(accRawDataX)+","+String(accRawDataY)+","+String(accRawDataZ)+","+String(gyroRawDataX)+","+String(gyroRawDataY)+","+String(gyroRawDataZ)+","+String(magnetRawDataX)+","+String(magnetRawDataY)+","+String(magnetRawDataZ)+","+String(gpsRawDataLon!)+","+String(gpsRawDataLan!)+","+String(gpsRawDataSpeed!)+","+String(gpsRawDataCourse!)+","+String(gpsRawDataError!)+","+String(airPressureRawData)+","+String(altitudeRawData)
+
         
             activityManager.startActivityUpdates(to: OperationQueue.main) {
                 [weak self] (activity: CMMotionActivity?) in
             if activity!.walking  {
                 //                        self!.condifentDisplay.text=deatil
                 self?.walkDispaly.text = "Walking"
-                activityMode=1
+                
                 finalData=Data+",walking"+"\n"
                 
                 
             } else if activity!.stationary {
                 self?.walkDispaly.text = "Stationary"
-                activityMode=2
+                
                 finalData=Data+",strationary"+"\n"
             } else if activity!.running {
                 self?.walkDispaly.text = "Running"
-                activityMode=3
+                
                 finalData=Data+",running"+"\n"
             } else if activity!.automotive {
                 self?.walkDispaly.text = "Automotive"
-                activityMode=4
+               
                 finalData=Data+",automotive"+"\n"
             }
             else if activity!.cycling {
                 self?.walkDispaly.text = "Cycling"
-                activityMode=5
+               
                 finalData=Data+",cycling"+"\n"
             }
                 else
             {
-                self?.walkDispaly.text = "undifine"
-                activityMode=6
-                finalData=Data+",undifine"+"\n"
+                self?.walkDispaly.text = "undefined"
+                
+                finalData=Data+",undefined"+"\n"
                 }
             }
      
