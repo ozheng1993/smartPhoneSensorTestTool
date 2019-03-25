@@ -6,6 +6,7 @@
 //  Copyright © 2018 ou zheng. All rights reserved.
 //
 var gpsDatas: [String] = []
+var test: [String] = []
 import UIKit
 import CoreMotion
 import CoreData
@@ -18,8 +19,6 @@ var startToSave = false
 //var magnActive = false
 //var gpsActive = false
 //var baroActive = false
-
-
 var frequency=1.0
 var finalData=""
 var userMode=""
@@ -160,8 +159,6 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
     }
     
     @IBAction func gpsBtn(_ sender: Any) {
-       
-        
        // gpsActive=true
         
         if CLLocationManager.locationServicesEnabled()
@@ -299,7 +296,9 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
             let fileNameString=self.fileName.text
             let fileName = fileNameString!+".csv"
             let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
-            var csvText = "Date,accx,accy,accz,gyrox,gryoy,gyroz,magnetx,magnety,magnetz,lon,lan,speed,course,error,air pressure,altitude,batteryLevel,mode\n"
+            //var csvText = "create,upload,serverTime,feedbackTime\n"
+            var csvText = "Date,accx,accy,accz,gyrox,gryoy,gyroz,magnetx,magnety,magnetz,lon,lan,speed,course,error,air pressure,altitude,batteryLevel,mode,start upload,end upload\n"
+
             print(accDatas)
             for task in accDatas {
                 let newLine = task
@@ -343,8 +342,8 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
         tap.cancelsTouchesInView = false
         self.view.addGestureRecognizer(tap)
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
-        manager.distanceFilter = 1.0  // In meters.
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 0.1  // In meters.
         manager.delegate = self
         manager.requestAlwaysAuthorization()
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -406,70 +405,163 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
     }
     
     
-    
+    var end_time=""
     func makePostCall(date:String,
                       accx:String,accy:String,accz:String,
                       gyrox:String,gyroy:String,gyroz:String,
                       magnx:String,magny:String,magnz:String,
                     gpslon:String,gpslan:String,gpsspeed:String,gpscourse:String,
-            gpserror:String,airpre:String,alti:String,battry:String,mode:String
-        ) {
-        print("///////////////")
-        print(date)
-        print("-----acc-------")
-        print(accx)
-        print(accy)
-        print(accz)
-        print("-----gyro-------")
-        print(gyrox)
-        print(gyroy)
-        print(gyroz)
-         print("-----magn-------")
-        print(magnx)
-        print(magny)
-        print(magnz)
-         print("-----gps-------")
-        print(gpslon)
-        print(gpslan)
-        print(gpsspeed)
-        print(gpscourse)
-        print(gpserror)
-         print("-----baro-------")
-        print(airpre)
-        print(alti)
-         print("-----battry-------")
-        print(battry)
-        print(mode)
-        print("///////////////")
+                    gpserror:String,airpre:String,alti:String,battry:String,mode:String,userCompletionHandler: @escaping (_ start:String,_ end:String) -> Void
+        ){
+        
+        let dateFormatter : DateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        
+       
+        var start=""
+        var end=""
+        
+        //print(start)
+        
+//        print("///////////////")
+//        print(date)
+//        print("-----acc-------")
+//        print()
+//        print(accy)
+//        print(accz)
+//        print("-----gyro-------")
+//        print(gyrox)
+//        print(gyroy)
+//        print(gyroz)
+//         print("-----magn-------")
+//        print(magnx)
+//        print(magny)
+//        print(magnz)
+//         print("-----gps-------")
+//        print(gpslon)
+//        print(gpslan)
+//        print(gpsspeed)
+//        print(gpscourse)
+//        print(gpserror)
+//         print("-----baro-------")
+//        print(airpre)
+//        print(alti)
+//         print("-----battry-------")
+//        print(String(battry))
+//        print(mode)
+//        print("///////////////")
 
-//        let url = NSURL(string: "http://157.230.178.76/item/item_name")
-//        var request = URLRequest(url: url! as URL)
-//        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")  // the request is JSON
-//        //request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")        // the expected response is also JSON
-//        request.httpMethod = "POST"
-//
-//        let dictionary = ["username": "hongbojing", "password": "asdf"]
-//        request.httpBody = try! JSONSerialization.data(withJSONObject: dictionary)
-//
-//        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-//            guard let data = data, error == nil else {
-//                print(error)                                 // some fundamental network error
-//                return
-//            }
-//
-//            do {
-//                let responseObject = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:Any]
-//                //print(responseObject)
+        let url = NSURL(string: "http://157.230.178.76/item/hongbo")
+        var request = URLRequest(url: url! as URL)
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")  // the request is JSON
+        //request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")        // the expected response is also JSON
+        request.httpMethod = "POST"
+
+        let dictionary = [
+            "warning": "no",
+            "os": "ios",
+            "sensor_acc": ["x":accx,"y":accy,"z":accz],
+            "sensor_gyro": ["x":gyrox,"y":gyroy,"z":gyroz],
+            "sensor_magnet": ["x":magnx,"y":magny,"z":magnz],
+            "sensor_gps": ["lon":gpslon,"lan":gpslan,"speed":gpsspeed,"course":gpscourse,"error":gpserror],
+            "sensor_odmeter": ["airPressure":airpre,"altitude":alti],
+            "activity": mode,
+            "battery":battry,
+            "timeStamp": date
+            ] as [String : Any]
+        //print(dictionary)
+        request.httpBody = try! JSONSerialization.data(withJSONObject: dictionary)
+        let startDate = Date()
+        start = dateFormatter.string(from: startDate)
+        let task = URLSession.shared.dataTask(with: request,completionHandler:{ data, response, error in
+            guard let data = data, error == nil else {
+                print(error)
+                return
+            }
+            let responseString = String(data: data, encoding: .utf8)
+            do {
+                var feedBackData=""
+                let responseObject = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:Any]
+                print("------------------")
+                let date = Date()
+                end = dateFormatter.string(from: date)
+                
+                //print(responseObject)
+//                print(responseObject["sensor_magnet"])
+//                print(responseObject["sensor_gps"])
+//                print(responseObject["sensor_acc"])
+//                print(responseObject["sensor_gyro"])
+//                print(responseObject["sensor_odmeter"])
+//                print(responseObject["os"])
+//                print(responseObject["battery"])
+//                print(responseObject["name"])
+//                print(responseObject["warning"])
+//                print(responseObject["activity"])
+//                print(responseObject["timeStamp"])
+//                print(start)
+//                print(responseObject["generateTime"])
+//                print(end)
+                feedBackData="\(responseObject["timeStamp"]!)"+",\(start)"+",\(responseObject["generateTime"]!)"+",\(end)"
+                //                //                feedBackData="\(responseObject["sensor_magnet"])"+",\(responseObject["sensor_gps"])"+",\(responseObject["sensor_acc"])"+",\(responseObject["sensor_gyro"])"+",\(responseObject["sensor_odmeter"])"+",\(responseObject["os"])"+",\(responseObject["battery"])"+",\(responseObject["name"])"+",\(responseObject["warning"])"+",\(responseObject["activity"])"+",\(responseObject["timeStamp"])"+",\(start)"+",\(responseObject["generateTime"])"+",\(end)"
+                //
+//                feedBackData.append(responseObject["sensor_magnet"] as! String)
+//                feedBackData.append(responseObject["sensor_gps"] as! String)
+//                feedBackData.append(responseObject["sensor_acc"] as! String)
+//                feedBackData.append(responseObject["sensor_gps"] as! String)
+//                feedBackData.append(responseObject["sensor_gyro"] as! String)
+//                feedBackData.append(responseObject["sensor_odmeter"] as! String)
+//                feedBackData.append(responseObject["sensor_magnet"] as! String)
+//                feedBackData.append(responseObject["sensor_gps"] as! String)
+                
+                
+                
+                
+                
+                
+                userCompletionHandler(feedBackData,end);
+
+//                print(responseObject["sensor_magnet"]?["y"])
+//                print(responseObject["sensor_magnet"]?["z"])
 //                for item in responseObject {
+//                    print(item.key)
 //                    print(item.value)
-//                }
+//                    var tmpData="\(item.value)"
+////                    if(item.key=="sensor_magnet")
+////                    {
+////                        print(item.x)
+////                        print(item.y)
+////                        print(item.z)
+////                    }
+//                //#feedBackData.append(tmpData)
 //
-//            } catch let jsonError {
-//                print(jsonError)
-//                print(String(data: data, encoding: .utf8))   // often the `data` contains informative description of the nature of the error, so let's look at that, too
-//            }
-//        }
-//        task.resume()
+//                }
+                //print(feedBackData)
+          
+                
+//                feedBackData.append(start)
+//                feedBackData.append(",")
+//                feedBackData.append(end)
+                
+                
+//                print("start time")
+//                print(start)
+//                print("recived time")
+//                print(end)
+                print("-//////////////////////////////---")
+                //print(end)
+                //print("///////////////////////////////")// some fundamental network error
+               
+
+            } catch let jsonError {
+                print(jsonError)
+                userCompletionHandler(jsonError as! String,end);
+                print(String(data: data, encoding: .utf8))   // often the `data` contains informative description of the nature of the error, so let's look at that, too
+            }
+        })
+        task.resume()
+        
+
+        
     }
     
     
@@ -687,63 +779,45 @@ class ViewController: UIViewController ,UITextFieldDelegate,CLLocationManagerDel
 //        print(self.displayAltitude.text!)
         airPressureRawData = self.displayAirpressure.text!
         altitudeRawData = self.displayAltitude.text!
-        let battery=String(UIDevice.current.batteryLevel)
-        displayBattery.text="battery: "+battery+"%"
-        makePostCall(date: dateString,accx: accRawDataX,accy: accRawDataY,accz: accRawDataZ, gyrox:gyroRawDataX,gyroy: gyroRawDataY,gyroz: gyroRawDataZ,magnx: magnetRawDataX,magny: magnetRawDataY,magnz: magnetRawDataZ,gpslon: gpsRawDataLon,gpslan: gpsRawDataLan,gpsspeed: gpsRawDataSpeed,gpscourse: gpsRawDataCourse,gpserror: gpsRawDataError,airpre: airPressureRawData,alti: altitudeRawData,battry: battery,mode: userMode)
-        let Data=dateString+","+accRawDataX+","+accRawDataY+","+accRawDataZ+","+gyroRawDataX+","+gyroRawDataY+","+gyroRawDataZ+","+magnetRawDataX+","+magnetRawDataY+","+magnetRawDataZ+","+gpsRawDataLon+","+gpsRawDataLan+","+gpsRawDataSpeed+","+gpsRawDataCourse+","+gpsRawDataError+","+airPressureRawData+","+altitudeRawData+","+battery+","+userMode+"\n"
+        let battery=String(Int(UIDevice.current.batteryLevel*100))
+        displayBattery.text="battery: "+battery
+        //let updateDate = Date()
+//        var start=""
+//        var end=""
+//        start = dateFormatter.string(from: updateDate)
+//        print(start)
+        //var startdataTime:String?
+   
+        let delay=makePostCall(date: dateString,accx: accRawDataX,accy: accRawDataY,accz: accRawDataZ, gyrox:gyroRawDataX,gyroy: gyroRawDataY,gyroz: gyroRawDataZ,magnx: magnetRawDataX,magny: magnetRawDataY,magnz: magnetRawDataZ,gpslon: gpsRawDataLon,gpslan: gpsRawDataLan,gpsspeed: gpsRawDataSpeed,gpscourse: gpsRawDataCourse,gpserror: gpsRawDataError,airpre: airPressureRawData,alti: altitudeRawData,battry: battery,mode: userMode,
+                               userCompletionHandler: { feedbackData,end in
+                                print(feedbackData)
+//                                if startToSave
+//                                {
+//                                    accDatas.append(feedbackData+"\n")
+//                                    //print(finalData)
+//                                    //countDisplay.text="saved : "+String(accDatas.count);
+//                                }
+                            //#test.append(end)
 
-        
+                                
+        })
+        if startToSave
+        {
+            //accDatas.append(feedbackData)
+            //print(finalData)
+            countDisplay.text="saved : "+String(accDatas.count);
+        }
+    
+//        print(delay.start)
+//        print(delay.end)
+        let Data=dateString+","+accRawDataX+","+accRawDataY+","+accRawDataZ+","+gyroRawDataX+","+gyroRawDataY+","+gyroRawDataZ+","+magnetRawDataX+","+magnetRawDataY+","+magnetRawDataZ+","+gpsRawDataLon+","+gpsRawDataLan+","+gpsRawDataSpeed+","+gpsRawDataCourse+","+gpsRawDataError+","
+
+            let Data2=Data+airPressureRawData+","+altitudeRawData+","+battery+","+userMode+"\n"
             if startToSave
             {
-                accDatas.append(Data)
+                accDatas.append(Data2)
                 //print(finalData)
                 countDisplay.text="saved : "+String(accDatas.count);
-               
-//                let defaults = UserDefaults.standard
-//
-//                // Store
-//                defaults.set(Data, forKey: "username")
-//
-//                // Receive
-//                if let name = defaults.string(forKey: "username") {
-//                    //print(name)
-//                    // Will output "theGreatestName"
-//                }
-//                guard let appDelegate =
-//                    UIApplication.shared.delegate as? AppDelegate else {
-//                        return
-//                }
-//
-//                // 1
-//                let managedContext =
-//                    appDelegate.persistentContainer.viewContext
-//
-//                // 2
-//                let entity =
-//                    NSEntityDescription.entity(forEntityName: "Sensor",
-//                                               in: managedContext)!
-//
-//                let sensor = NSManagedObject(entity: entity,
-//                                             insertInto: managedContext)
-//
-//                // 3
-//                sensor.setValue(Data, forKeyPath: "data")
-//
-//                 //4
-//                do {
-//                    try managedContext.save()
-//                    //                people.append(person)
-//                } catch let error as NSError {
-//                    print("Could not save. \(error), \(error.userInfo)")
-//                }
-                
-                
-                
-                
-                
-                
-                
-                
             }
         }
 
